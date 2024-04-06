@@ -56,6 +56,28 @@ impl AnnuityLoan {
         }
     }
 
+    pub fn from_loan_annuity(
+        loan: f64,
+        annual_interest_rate_percentage: f64,
+        monthly_annuity: f64,
+        annual_unscheduled_amortization: f64,
+    ) -> AnnuityLoan {
+        let annual_interest_rate = annual_interest_rate_percentage / 100f64;
+        let monthly_interest_rate =
+            AnnuityLoan::calculate_monthly_interest_rate(annual_interest_rate);
+        let annual_pay_off_rate = (monthly_annuity - monthly_interest_rate * loan) / loan * 12f64;
+
+        AnnuityLoan {
+            loan: loan,
+            annual_pay_off_rate: annual_pay_off_rate,
+            annual_interest_rate: annual_interest_rate,
+            annual_unscheduled_amortization: annual_unscheduled_amortization,
+            monthly_interest_rate: monthly_interest_rate,
+            monthly_annuity: monthly_annuity,
+            begin_pay_off: chrono::NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
+        }
+    }
+
     pub fn calculate_pay_off_plan(&self) -> Vec<Rate> {
         let mut interest = self.loan * self.monthly_interest_rate;
         let mut amortization = self.monthly_annuity - interest;

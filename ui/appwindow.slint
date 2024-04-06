@@ -1,13 +1,4 @@
-import { Button, VerticalBox, LineEdit, ScrollView, StandardTableView } from "std-widgets.slint";
-
-export struct Rate {
-    payment_date: string,
-    annuity: float,
-    interest: float,
-    amortization: float,
-    unscheduled_amortization: float,
-    residual_dept: float,   
-}
+import { Button, VerticalBox, LineEdit, StandardTableView, CheckBox } from "std-widgets.slint";
 
 export global TableViewAdapter  {
     in property <[[StandardListViewItem]]> row_data: [
@@ -17,8 +8,9 @@ export global TableViewAdapter  {
 export component AppWindow inherits Window {
     title: "Credit calculator";
     in property<string> credit_overview: "";
-    in property <[Rate]> rates;
-    callback request-credit-plan(float, float, float, float);
+    property <bool> monthly_rate: true;
+    callback request-credit-plan-rates(float, float, float, float);
+    callback request-credit-plan-annuity(float, float, float, float);
     VerticalBox {
         loan := LineEdit {
             input-type: decimal;
@@ -30,10 +22,22 @@ export component AppWindow inherits Window {
             placeholder-text: "Annual Interest Rate in %";
             font-size: 20pt;
         }
+        monthly_rate_checkbox := CheckBox {
+            text: "Provide Annuity";
+            checked: monthly_rate;
+            toggled => {monthly_rate = !monthly_rate}
+        }
         annual_pay_off_rate := LineEdit {
             input-type: decimal;
             placeholder-text: "Annual pay off rate in %";
             font-size: 20pt;
+            enabled: !monthly_rate;
+        }
+        annuity := LineEdit{
+            input-type: decimal;
+            placeholder-text: "Monthly annuity in €";
+            font-size: 20pt;
+            enabled: monthly_rate;
         }
         annual_unscheduled_amortization := LineEdit{
             input-type: decimal;
@@ -43,7 +47,11 @@ export component AppWindow inherits Window {
         Button {
             text: "Calculate Credit Plan";
             clicked => {
-                root.request-credit-plan(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
+                if monthly_rate {
+                    root.request-credit-plan-annuity(loan.text.to-float(), annual-interest-rate.text.to-float(), annuity.text.to-float(), annual-unscheduled-amortization.text.to-float());
+                } else {
+                    root.request-credit-plan-rates(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
+                }
             }
         }
         Text {
