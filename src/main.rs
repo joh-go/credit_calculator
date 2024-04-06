@@ -3,21 +3,22 @@ pub mod credit_calculator;
 slint::include_modules!();
 
 use chrono::Datelike;
-use slint::{Model, StandardListViewItem, VecModel};
+use slint::{StandardListViewItem, VecModel};
 use std::rc::Rc;
 use thousands::Separable;
 
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
 
-    ui.on_requst_credit_plan({
+    ui.on_request_credit_plan({
         let ui_handle = ui.as_weak();
-        move |loan, annual_interest_rate, annual_pay_off_rate| {
+        move |loan, annual_interest_rate, annual_pay_off_rate, annual_unscheduled_amortization| {
             let ui = ui_handle.unwrap();
             let annuity_loan = credit_calculator::AnnuityLoan::from_loan_rate(
                 loan.into(),
                 annual_interest_rate.into(),
                 annual_pay_off_rate.into(),
+                annual_unscheduled_amortization.into(),
             );
 
             ui.set_credit_overview(annuity_loan.to_string().into());

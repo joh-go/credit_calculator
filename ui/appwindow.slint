@@ -18,27 +18,32 @@ export component AppWindow inherits Window {
     title: "Credit calculator";
     in property<string> credit_overview: "";
     in property <[Rate]> rates;
-    callback requst-credit-plan(float, float, float);
+    callback request-credit-plan(float, float, float, float);
     VerticalBox {
         loan := LineEdit {
             input-type: decimal;
-            placeholder-text: "Credit Loan";
+            placeholder-text: "Credit Loan in €";
             font-size: 20pt;
         }
         annual_interest_rate := LineEdit {
             input-type: decimal;
-            placeholder-text: "Annual Interest Rate";
+            placeholder-text: "Annual Interest Rate in %";
             font-size: 20pt;
         }
         annual_pay_off_rate := LineEdit {
             input-type: decimal;
-            placeholder-text: "Annual pay off rate";
+            placeholder-text: "Annual pay off rate in %";
+            font-size: 20pt;
+        }
+        annual_unscheduled_amortization := LineEdit{
+            input-type: decimal;
+            placeholder-text: "Annual unscheduled amortization in €";
             font-size: 20pt;
         }
         Button {
             text: "Calculate Credit Plan";
             clicked => {
-                root.requst-credit-plan(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float());
+                root.request-credit-plan(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
             }
         }
         Text {
@@ -52,8 +57,8 @@ export component AppWindow inherits Window {
                 { title: "Payment date" },
                 { title: "Annuity" },
                 { title: "Interest" },
-                { title: "Ammortization" },
-                { title: "Unscheduled Ammortization" },
+                { title: "Amortization" },
+                { title: "Unscheduled Amortization" },
                 { title: "Residual dept" },
             ];
             rows: TableViewAdapter.row_data;

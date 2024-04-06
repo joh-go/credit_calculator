@@ -1,9 +1,11 @@
+use chrono::Datelike;
 use thousands::Separable;
 
 pub struct AnnuityLoan {
     loan: f64,
     annual_pay_off_rate: f64,
     annual_interest_rate: f64,
+    annual_unscheduled_amortization: f64,
     monthly_interest_rate: f64,
     monthly_annuity: f64,
     begin_pay_off: chrono::NaiveDate,
@@ -32,6 +34,7 @@ impl AnnuityLoan {
         loan: f64,
         annual_interest_rate_percentage: f64,
         annual_pay_off_rate_percentage: f64,
+        annual_unscheduled_amortization: f64,
     ) -> AnnuityLoan {
         let annual_interest_rate = annual_interest_rate_percentage / 100f64;
         let annual_pay_off_rate = annual_pay_off_rate_percentage / 100f64;
@@ -40,6 +43,7 @@ impl AnnuityLoan {
             loan: loan,
             annual_pay_off_rate: annual_pay_off_rate,
             annual_interest_rate: annual_interest_rate,
+            annual_unscheduled_amortization: annual_unscheduled_amortization,
             monthly_interest_rate: AnnuityLoan::calculate_monthly_interest_rate(
                 annual_interest_rate,
             ),
@@ -67,11 +71,18 @@ impl AnnuityLoan {
 
         let mut last_rate = rates.last().unwrap();
         while last_rate.residual_dept > 0f64 {
+            let payment_date = last_rate.payment_date + chrono::Months::new(1);
+            let unscheduled_amortization = match payment_date.month() == 1
+                && last_rate.residual_dept - self.annual_unscheduled_amortization > 0f64
+            {
+                true => self.annual_unscheduled_amortization,
+                false => 0f64,
+            };
             interest = last_rate.residual_dept * self.monthly_interest_rate;
             amortization = self.monthly_annuity - interest;
-            amortization = match amortization < last_rate.residual_dept {
+            amortization = match amortization < last_rate.residual_dept - unscheduled_amortization {
                 true => amortization,
-                false => last_rate.residual_dept,
+                false => last_rate.residual_dept - unscheduled_amortization,
             };
 
             let monthly_annuity = match amortization < last_rate.residual_dept {
@@ -80,12 +91,12 @@ impl AnnuityLoan {
             };
 
             rates.push(Rate {
-                payment_date: last_rate.payment_date + chrono::Months::new(1),
+                payment_date: payment_date,
                 annuity: monthly_annuity,
                 interest: interest,
                 amortization: amortization,
-                unscheduled_amortization: 0f64,
-                residual_dept: last_rate.residual_dept - amortization,
+                unscheduled_amortization: unscheduled_amortization,
+                residual_dept: last_rate.residual_dept - amortization - unscheduled_amortization,
             });
 
             last_rate = rates.last().unwrap();
