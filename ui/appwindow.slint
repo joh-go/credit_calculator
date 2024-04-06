@@ -1,17 +1,62 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, LineEdit, ScrollView, StandardTableView } from "std-widgets.slint";
+
+export struct Rate {
+    payment_date: string,
+    annuity: float,
+    interest: float,
+    amortization: float,
+    unscheduled_amortization: float,
+    residual_dept: float,   
+}
+
+export global TableViewAdapter  {
+    in property <[[StandardListViewItem]]> row_data: [
+    ];
+}
 
 export component AppWindow inherits Window {
-    in-out property<int> counter: 42;
-    callback request-increase-value();
+    title: "Credit calculator";
+    in property<string> credit_overview: "";
+    in property <[Rate]> rates;
+    callback requst-credit-plan(float, float, float);
     VerticalBox {
-        Text {
-            text: "Counter: \{root.counter}";
+        loan := LineEdit {
+            input-type: decimal;
+            placeholder-text: "Credit Loan";
+            font-size: 20pt;
+        }
+        annual_interest_rate := LineEdit {
+            input-type: decimal;
+            placeholder-text: "Annual Interest Rate";
+            font-size: 20pt;
+        }
+        annual_pay_off_rate := LineEdit {
+            input-type: decimal;
+            placeholder-text: "Annual pay off rate";
+            font-size: 20pt;
         }
         Button {
-            text: "Increase value";
+            text: "Calculate Credit Plan";
             clicked => {
-                root.request-increase-value();
+                root.requst-credit-plan(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float());
             }
+        }
+        Text {
+            text: root.credit_overview;
+            font-size: 20pt;
+        }
+       
+        annuity_table := StandardTableView {
+            width: 800px;
+            columns: [
+                { title: "Payment date" },
+                { title: "Annuity" },
+                { title: "Interest" },
+                { title: "Ammortization" },
+                { title: "Unscheduled Ammortization" },
+                { title: "Residual dept" },
+            ];
+            rows: TableViewAdapter.row_data;
         }
     }
 }

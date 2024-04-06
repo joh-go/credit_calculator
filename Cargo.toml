@@ -9,6 +9,8 @@ build = "build.rs"
 
 [dependencies]
 slint = "1.4"
+chrono = "*"
+thousands ="*"
 
 [build-dependencies]
 slint-build = "1.4"
