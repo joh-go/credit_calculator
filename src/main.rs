@@ -3,7 +3,7 @@ pub mod credit_calculator;
 slint::include_modules!();
 
 use chrono::Datelike;
-use slint::{StandardListViewItem, VecModel};
+use slint::{Model, StandardListViewItem, VecModel};
 use std::rc::Rc;
 use thousands::Separable;
 
@@ -12,7 +12,11 @@ fn main() -> Result<(), slint::PlatformError> {
 
     ui.on_request_credit_plan_rates({
         let ui_handle = ui.as_weak();
-        move |loan, annual_interest_rate, annual_pay_off_rate, annual_unscheduled_amortization| {
+        move |loan,
+              annual_interest_rate,
+              annual_pay_off_rate,
+              annual_unscheduled_amortization,
+              credit_id| {
             let ui = ui_handle.unwrap();
             let annuity_loan = credit_calculator::AnnuityLoan::from_loan_rate(
                 loan.into(),
@@ -21,13 +25,17 @@ fn main() -> Result<(), slint::PlatformError> {
                 annual_unscheduled_amortization.into(),
             );
 
-            show_credit_plan(&annuity_loan, ui);
+            show_credit_plan(&annuity_loan, ui, credit_id);
         }
     });
 
     ui.on_request_credit_plan_annuity({
         let ui_handle = ui.as_weak();
-        move |loan, annual_interest_rate, monthly_annuity, annual_unscheduled_amortization| {
+        move |loan,
+              annual_interest_rate,
+              monthly_annuity,
+              annual_unscheduled_amortization,
+              credit_id| {
             let ui = ui_handle.unwrap();
             let annuity_loan = credit_calculator::AnnuityLoan::from_loan_annuity(
                 loan.into(),
@@ -36,15 +44,20 @@ fn main() -> Result<(), slint::PlatformError> {
                 annual_unscheduled_amortization.into(),
             );
 
-            show_credit_plan(&annuity_loan, ui);
+            show_credit_plan(&annuity_loan, ui, credit_id);
         }
     });
 
     ui.run()
 }
 
-fn show_credit_plan(annuity_loan: &credit_calculator::AnnuityLoan, ui: AppWindow) {
-    ui.set_credit_overview(annuity_loan.to_string().into());
+fn show_credit_plan(annuity_loan: &credit_calculator::AnnuityLoan, ui: AppWindow, credit_id: i32) {
+    let credit_overview = ui.get_credit_overview();
+
+    credit_overview.set_row_data(
+        credit_id.try_into().unwrap(),
+        annuity_loan.to_string().into(),
+    );
 
     let row_data: Rc<VecModel<slint::ModelRc<StandardListViewItem>>> = Rc::new(VecModel::default());
 
@@ -68,6 +81,7 @@ fn show_credit_plan(annuity_loan: &credit_calculator::AnnuityLoan, ui: AppWindow
         row_data.push(items.into());
     }
 
-    ui.global::<TableViewAdapter>()
-        .set_row_data(row_data.clone().into());
+    let row_datas = ui.get_row_datas();
+
+    row_datas.set_row_data(credit_id.try_into().unwrap(), row_data.clone().into());
 }

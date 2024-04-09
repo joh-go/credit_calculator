@@ -135,7 +135,7 @@ impl AnnuityLoan {
         let month_to_pay_off = rates.len() % 12;
 
         format!(
-            "Loan: {}\nInterestRate: {:.2}%\nFirstPayOffRate: {:.2}%\nMonthly annuity: {:.2}€\nPayed off in {} year(s) and {} month(s)",
+            "Loan: {}€\nInterestRate: {:.2}%\nFirstPayOffRate: {:.2}%\nMonthly annuity: {:.2}€\nPayed off in {} year(s) and {} month(s)",
             self.loan.round().separate_with_spaces(),
             self.annual_interest_rate * 100f64,
             self.annual_pay_off_rate * 100f64,

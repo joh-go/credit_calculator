@@ -1,66 +1,71 @@
-import { Button, VerticalBox, LineEdit, StandardTableView, CheckBox } from "std-widgets.slint";
+import { Button, VerticalBox, LineEdit, StandardTableView, CheckBox, HorizontalBox } from "std-widgets.slint";
 
-export global TableViewAdapter  {
+export component Credit {
+    property <bool> monthly_rate: true;
+    property <string> placeholder_text : "Monthly annuity in €";
+    
+    in property<string> credit_overview: "";
     in property <[[StandardListViewItem]]> row_data: [
     ];
-}
 
-export component AppWindow inherits Window {
-    title: "Credit calculator";
-    in property<string> credit_overview: "";
-    property <bool> monthly_rate: true;
     callback request-credit-plan-rates(float, float, float, float);
     callback request-credit-plan-annuity(float, float, float, float);
+    
+
     VerticalBox {
-        loan := LineEdit {
-            input-type: decimal;
-            placeholder-text: "Credit Loan in €";
-            font-size: 20pt;
-        }
-        annual_interest_rate := LineEdit {
-            input-type: decimal;
-            placeholder-text: "Annual Interest Rate in %";
-            font-size: 20pt;
+        Text {
+            text: "Credit 1";
+            font-size: 30pt;
         }
         monthly_rate_checkbox := CheckBox {
             text: "Provide Annuity";
             checked: monthly_rate;
-            toggled => {monthly_rate = !monthly_rate}
+            toggled => {
+                monthly_rate = !monthly_rate;
+                annuity-or-rate.text = "";
+                if monthly_rate {
+                    placeholder_text = "Monthly annuity in €";
+                } else{
+                    placeholder_text = "Annual pay off rate in %";
+                }
+            }
         }
-        annual_pay_off_rate := LineEdit {
+        loan := LineEdit {
             input-type: decimal;
-            placeholder-text: "Annual pay off rate in %";
-            font-size: 20pt;
-            enabled: !monthly_rate;
+            placeholder-text: "Credit Loan in €";
+            font-size: 12pt;
         }
-        annuity := LineEdit{
+        annual_interest_rate := LineEdit {
             input-type: decimal;
-            placeholder-text: "Monthly annuity in €";
-            font-size: 20pt;
-            enabled: monthly_rate;
+            placeholder-text: "Annual Interest Rate in %";
+            font-size: 12pt;
+        }
+        annuity_or_rate := LineEdit{
+            input-type: decimal;
+            placeholder-text: root.placeholder_text;
+            font-size: 12pt;
         }
         annual_unscheduled_amortization := LineEdit{
             input-type: decimal;
             placeholder-text: "Annual unscheduled amortization in €";
-            font-size: 20pt;
+            font-size: 12pt;
         }
         Button {
             text: "Calculate Credit Plan";
             clicked => {
                 if monthly_rate {
-                    root.request-credit-plan-annuity(loan.text.to-float(), annual-interest-rate.text.to-float(), annuity.text.to-float(), annual-unscheduled-amortization.text.to-float());
+                    root.request-credit-plan-annuity(loan.text.to-float(), annual-interest-rate.text.to-float(), annuity_or_rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
                 } else {
-                    root.request-credit-plan-rates(loan.text.to-float(), annual-interest-rate.text.to-float(), annual-pay-off-rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
+                    root.request-credit-plan-rates(loan.text.to-float(), annual-interest-rate.text.to-float(), annuity_or_rate.text.to-float(), annual-unscheduled-amortization.text.to-float());
                 }
             }
         }
         Text {
             text: root.credit_overview;
-            font-size: 20pt;
+            font-size: 14pt;
         }
        
         annuity_table := StandardTableView {
-            width: 800px;
             columns: [
                 { title: "Payment date" },
                 { title: "Annuity" },
@@ -69,7 +74,41 @@ export component AppWindow inherits Window {
                 { title: "Unscheduled Amortization" },
                 { title: "Residual dept" },
             ];
-            rows: TableViewAdapter.row_data;
+            rows : row_data;
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    title: "Credit calculator";
+    min-width: 1000px;
+    min-height: 600px;
+
+    in property<[string]> credit_overview: ["", ""];
+    in property <[[[StandardListViewItem]]]> row_datas: [ [[{}]], [[{}]]];
+
+    callback request-credit-plan-rates(float, float, float, float, int);
+    callback request-credit-plan-annuity(float, float, float, float, int);
+
+    HorizontalBox {
+        Credit {
+            row_data: row_datas[0];
+            credit_overview: root.credit_overview[0];
+            request-credit-plan-annuity(f1, f2, f3, f4) => { root.request-credit-plan-annuity(f1, f2, f3, f4, 0) }
+            request-credit-plan-rates(f1, f2, f3, f4) => { root.request-credit-plan-rates(f1, f2, f3, f4, 0) }
+
+            width: 48%;
+            height: 100%;
+        }
+
+        Credit {
+            row_data: row_datas[1];
+            credit_overview: root.credit_overview[1];
+            request-credit-plan-annuity(f1, f2, f3, f4) => { root.request-credit-plan-annuity(f1, f2, f3, f4, 1) }
+            request-credit-plan-rates(f1, f2, f3, f4) => { root.request-credit-plan-rates(f1, f2, f3, f4, 1) }
+
+            width: 48%;
+            height: 100%;
         }
     }
 }
