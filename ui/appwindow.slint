@@ -4,6 +4,7 @@ export component Credit {
     property <bool> monthly_rate: true;
     property <string> placeholder_text : "Monthly annuity in €";
     
+    in property <string> title;
     in property<string> credit_overview: "";
     in property <[[StandardListViewItem]]> row_data: [
     ];
@@ -14,7 +15,7 @@ export component Credit {
 
     VerticalBox {
         Text {
-            text: "Credit 1";
+            text: root.title;
             font-size: 30pt;
         }
         monthly_rate_checkbox := CheckBox {
@@ -92,6 +93,7 @@ export component AppWindow inherits Window {
 
     HorizontalBox {
         Credit {
+            title: "Credit 1";
             row_data: row_datas[0];
             credit_overview: root.credit_overview[0];
             request-credit-plan-annuity(f1, f2, f3, f4) => { root.request-credit-plan-annuity(f1, f2, f3, f4, 0) }
@@ -102,6 +104,7 @@ export component AppWindow inherits Window {
         }
 
         Credit {
+            title: "Credit 2";
             row_data: row_datas[1];
             credit_overview: root.credit_overview[1];
             request-credit-plan-annuity(f1, f2, f3, f4) => { root.request-credit-plan-annuity(f1, f2, f3, f4, 1) }
